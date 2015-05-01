@@ -65,7 +65,7 @@ namespace Aww_Explorer
 
         private void changesub_Click(object sender, RoutedEventArgs e)
         {
-
+            dataSource.PopulatePosts(subreddit.Text);
         }
     }
 }

@@ -34,6 +34,8 @@ namespace Aww_Explorer.DataSources
 
         public async void PopulatePosts(string subreddit)
         {
+            Posts.Clear();
+
             string requestUrl = "http://reddit.com/r/" + subreddit + ".json";
             string jsonText;
 
