@@ -27,14 +27,15 @@
                   >
             <GridView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="Test" />
-                        <TextBlock Text="{Binding Title}" />
-                        <TextBlock Text="{Binding Author}" />
-                        <TextBlock Text="{Binding ID}" />
-                        <TextBlock Text="{Binding Link}" />
-                        <TextBlock Text="{Binding Thumbnail}" />
-                    </StackPanel>
+                    <Grid Width="128" Height="128">
+                        <Image Source="{Binding Thumbnail}"  Stretch="UniformToFill"/>
+                        <StackPanel Orientation="Vertical" Background="#CC000000" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding Title}" Margin="10,3,0,0" 
+                       TextTrimming="WordEllipsis" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding Author}" Margin="10,0,0,10" 
+                       TextTrimming="WordEllipsis" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
                 </DataTemplate>
             </GridView.ItemTemplate>
         </GridView>
