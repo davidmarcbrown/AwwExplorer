@@ -20,6 +20,7 @@ namespace Aww_Explorer.DataSources
         private string after;
         private HttpClient httpClient;
         private bool busy = false;
+        private bool hasMoreItems = true;
 
         public Posts(string subreddit)
         {
@@ -31,7 +32,7 @@ namespace Aww_Explorer.DataSources
 
         public bool HasMoreItems
         {
-            get { return true; }
+            get { return hasMoreItems; }
         }
 
         public Windows.Foundation.IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
@@ -75,6 +76,11 @@ namespace Aww_Explorer.DataSources
             string kind = page.GetObject().GetNamedString("kind");
 
             after = page.GetObject().GetNamedObject("data").GetNamedString("after");
+
+            if (after != null)
+                hasMoreItems = true;
+            else
+                hasMoreItems = false;
 
             if (kind.Equals("Listing"))
             {

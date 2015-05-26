@@ -16,6 +16,7 @@ using Aww_Explorer.DataSources;
 using System.Collections.Specialized;
 using Windows.System;
 using Windows.UI.ViewManagement;
+using System.Text.RegularExpressions;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
 
@@ -69,9 +70,19 @@ namespace Aww_Explorer
 
         private async void initPosts()
         {
+            // remove whitespace in subreddit
+            subredditTextBox.Text = Regex.Replace(subredditTextBox.Text, @"\s+", string.Empty);
+
+            // populate posts
             posts = new Posts(subredditTextBox.Text);
+
+            // reset CollectionChanged handler
             posts.CollectionChanged += onCollectionChanged;
+
+            // set up UI
             gridView.DataContext = posts;
+
+            // start downloading posts
             await posts.addPosts();
         }
     }
