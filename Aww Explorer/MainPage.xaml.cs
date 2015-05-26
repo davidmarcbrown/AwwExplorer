@@ -14,6 +14,8 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Aww_Explorer.DataSources;
 using System.Collections.Specialized;
+using Windows.System;
+using Windows.UI.ViewManagement;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
 
@@ -24,7 +26,7 @@ namespace Aww_Explorer
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        DataSource dataSource;
+        private Posts posts;
 
         public MainPage()
         {
@@ -32,19 +34,12 @@ namespace Aww_Explorer
 
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            dataSource = new DataSources.DataSource();
-            dataSource.PopulatePosts("Aww");
-            gridView.DataContext = dataSource.Posts;   
+            initPosts();
         }
 
         private void onCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            //info.Text = dataSource.Posts.Count().ToString();
-            var posts = dataSource.Posts;
-            if (posts.Count > 0)
-            {
-                info.Text = posts[0].Title;
-            }
+            info.Text = gridView.Items.Count.ToString();
         }
 
         /// <summary>
@@ -63,10 +58,21 @@ namespace Aww_Explorer
             // this event is handled for you.
         }
 
-        private void changesub_Click(object sender, RoutedEventArgs e)
+        private void subredditTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
-            dataSource.PopulatePosts(subreddit.Text);
+            if (e.Key == VirtualKey.Enter)
+            {
+                initPosts();
+                InputPane.GetForCurrentView().TryHide();
+            }
+        }
 
+        private async void initPosts()
+        {
+            posts = new Posts(subredditTextBox.Text);
+            posts.CollectionChanged += onCollectionChanged;
+            gridView.DataContext = posts;
+            await posts.addPosts();
         }
     }
 }
