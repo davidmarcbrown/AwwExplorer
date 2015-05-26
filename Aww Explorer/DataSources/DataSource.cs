@@ -1,80 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
-using Windows.UI.Xaml.Data;
 
 namespace Aww_Explorer.DataSources
 {
-    class Posts: ObservableCollection<Post>, ISupportIncrementalLoading
+    public class RedditGridViewItem
     {
-        private const int LIMIT = 50;
-        private string subreddit;
-        private string after;
-        private HttpClient httpClient;
-        private bool busy = false;
+        public string ID {get; set;}
+        public string Title { get; set; }
+        public string Link { get; set; }
+        public string Thumbnail { get; set; }
+        public string Author { get; set; }
+    }
 
-        public Posts(string subreddit)
+    public class DataSource
+    {
+        public ObservableCollection<RedditGridViewItem> Posts;
+        private HttpClient httpClient;
+
+        public DataSource()
         {
             httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("user-agent", "A demo app written with .Net");
-            
-            this.subreddit = subreddit;
+
+            Posts = new ObservableCollection<RedditGridViewItem>();
         }
 
-        public bool HasMoreItems
+        public async void PopulatePosts(string subreddit)
         {
-            get { return true; }
-        }
+            Posts.Clear();
 
-        public Windows.Foundation.IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
-        {
-            if (busy)
-            {
-                throw new InvalidOperationException("Only one operation in flight at a time");
-            }
-
-            busy = true;
-
-            return AsyncInfo.Run((c) => LoadMoreItemsAsync(c, count));
-        }
-
-        private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(CancellationToken c, uint count)
-        {
-            try
-            {
-                await addPosts();
-
-                return new LoadMoreItemsResult();
-            }
-            finally
-            {
-                busy = false;
-            }
-        }
-
-        public async Task<bool> addPosts(){
-            string requestUrl = "http://reddit.com/r/" + subreddit + ".json" +
-                "?limit=" + LIMIT +
-                (!string.IsNullOrWhiteSpace(after) ? "&after=" + after : string.Empty);
+            string requestUrl = "http://reddit.com/r/" + subreddit + ".json";
+            string jsonText;
 
             HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
             response.EnsureSuccessStatusCode();
 
-            string jsonText = await response.Content.ReadAsStringAsync();
+            jsonText = await response.Content.ReadAsStringAsync();
 
             JsonValue page = JsonValue.Parse(jsonText);
 
             string kind = page.GetObject().GetNamedString("kind");
-
-            after = page.GetObject().GetNamedObject("data").GetNamedString("after");
 
             if (kind.Equals("Listing"))
             {
@@ -85,7 +57,7 @@ namespace Aww_Explorer.DataSources
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        Post post = new Post();
+                        RedditGridViewItem post = new RedditGridViewItem();
 
                         JsonObject jsonPost = children.GetObjectAt((uint)i).GetNamedObject("data");
                         bool isSelf = jsonPost.GetNamedBoolean("is_self");
@@ -98,13 +70,11 @@ namespace Aww_Explorer.DataSources
                             post.Author = jsonPost.GetNamedString("author");
                             post.Thumbnail = thumb;
                             post.Link = jsonPost.GetNamedString("url");
-                            this.Add(post);
+                            Posts.Add(post);
                         }
                     }
                 }
             }
-
-            return true;
         }
     }
 }
